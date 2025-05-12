@@ -7,6 +7,7 @@
 #include <thread>
 #include <mutex>
 #include <vector>
+#include <optional>
 
 
 bool SOLUTION_FOUND = false;
@@ -74,11 +75,23 @@ void solve_puzzle(const std::string& original, int leading_zeros, u_int64_t nonc
 // prints the modified string that meets the requirement and the time taken
 // prints the hash of the modified string
 
-void solve_puzzle_driver(const std::string& original, int leading_zeros) {    
+void solve_puzzle_driver(const std::string& original, int leading_zeros, std::optional<int> numberOfThreads = std::nullopt) {    
 
-    const unsigned int thread_count = std::thread::hardware_concurrency();
+    unsigned int thread_count;
+    
+    if (numberOfThreads.has_value()) {
+        thread_count = numberOfThreads.value();
+        if (thread_count <= 0) {
+            std::cerr << "Error: Number of threads must be positive." << std::endl;
+            return;
+        }
+        std::cout << "Using " << numberOfThreads.value() << " threads." << std::endl;
+    } else {
+        thread_count = std::thread::hardware_concurrency();
+        std::cout << "Using default number of threads: " << thread_count << std::endl;
+    }
+
     std::vector<std::thread> threads;
-    std::cout << "Number of threads: " << thread_count << std::endl;
 
     auto start = std::chrono::high_resolution_clock::now();
 
@@ -110,8 +123,8 @@ void solve_puzzle_driver(const std::string& original, int leading_zeros) {
 // invokes the solve puzzle driver function
 
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        std::cout << "Usage: " << argv[0] << " <original_string> <number_of_leading_zeros>" << std::endl;
+    if (argc < 3) {
+        std::cout << "Usage: " << argv[0] << " <original_string> <number_of_leading_zeros> <number_of_threads_(optional)>" << std::endl;
         return 1;
     }
 
@@ -128,6 +141,20 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    solve_puzzle_driver(original, leading_zeros);
+    try{
+        if (argc == 4) {
+            int numberOfThreads = std::stoi(argv[3]);
+            if (numberOfThreads <= 0) {
+                throw std::invalid_argument("Number of threads must be positive");
+            }
+            solve_puzzle_driver(original, leading_zeros, numberOfThreads);
+        } else {
+            solve_puzzle_driver(original, leading_zeros);
+        }
+    } catch (const std::exception& e) {
+        std::cout << "Error: " << e.what() << std::endl;
+        return 1;
+    }
+
     return 0;
 }
