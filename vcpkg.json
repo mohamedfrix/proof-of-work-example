@@ -1,0 +1,9 @@
+{
+    "name": "cns-blockchain",
+    "version": "0.1.0",
+    "description": "CNS Blockchain Primary Project",
+    "dependencies": [
+        "nlohmann-json",
+        "openssl"
+    ]
+}
